@@ -1,0 +1,1235 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>বাজারের তালিকা</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Bengali:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+    <style>
+        :root {
+            --primary-color: #3498db; 
+            --secondary-color: #2ecc71; 
+            --accent-color: #f1c40f; 
+            --bg-color: #f4f7f6; 
+            --card-bg-color: #ffffff;
+            --text-color: #333; 
+            --text-light-color: #555; 
+            --border-color: #ddd;
+            --shadow-color: rgba(0, 0, 0, 0.1);
+            --font-family: 'Noto Sans Bengali', sans-serif;
+            --danger-color: #e74c3c; 
+            --success-color: #27ae60; 
+            --info-color: #3498db;
+            --warning-color: #f39c12;
+            --nav-card-bg: #0d233e; /* New dark blue for nav cards */
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: var(--font-family); background-color: var(--bg-color);
+            color: var(--text-color); line-height: 1.6; font-size: 16px; 
+        }
+
+        .page-container { max-width: 1000px; margin: 0 auto; padding: 20px; }
+
+        .page {
+            display: none; background-color: var(--card-bg-color);
+            padding: 30px; border-radius: 8px;
+            box-shadow: 0 2px 10px var(--shadow-color); margin-top: 20px;
+            animation: fadeIn 0.5s ease-out;
+        }
+        .page.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0.6; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+        .page-header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 30px; padding-bottom: 20px; border-bottom: 1px solid var(--border-color);
+        }
+        .page-header h2 { font-size: 1.8em; color: var(--primary-color); font-weight: 600; margin: 0; }
+        .page-header .back-to-home {
+            font-size: 0.95em; color: var(--primary-color); text-decoration: none;
+            padding: 8px 15px; border-radius: 6px; border: 1px solid var(--primary-color);
+            transition: background-color 0.2s, color 0.2s; display: inline-flex; align-items: center; gap: 8px;
+        }
+        .page-header .back-to-home:hover { background-color: var(--primary-color); color: white; }
+
+
+        #homePage .main-title {
+            text-align: center; margin-bottom: 30px; padding: 20px;
+            background-color: var(--card-bg-color); border-radius: 8px;
+            box-shadow: 0 2px 10px var(--shadow-color);
+        }
+        #homePage .main-title h1 {
+            color: var(--primary-color); font-size: 1.9em;
+            margin: 0; font-weight: 700;
+        }
+        #homePage .main-title i { margin-right: 10px; font-size: 0.9em; color: var(--accent-color); }
+
+        /* === NEW NAVIGATION CARD STYLE AS PER IMAGE === */
+        .navigation-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+        .nav-card {
+            background-color: var(--nav-card-bg);
+            color: white;
+            padding: 30px 20px;
+            border-radius: 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+        }
+        .nav-card:hover {
+            background-color: #1a3b5f;
+            transform: translateY(-3px);
+        }
+        .nav-card h3 {
+            font-size: 1.5em; /* Main Title */
+            margin: 0 0 10px 0;
+            font-weight: 600;
+            color: #ffffff;
+        }
+        .nav-card p {
+            font-size: 0.95em; /* Subtitle/Description */
+            margin: 0;
+            color: #e0e0e0;
+            min-height: 2.5em;
+        }
+        /* No icons needed for the new design */
+        .nav-card i { display: none; }
+        
+        @media (max-width: 500px) {
+            .navigation-grid {
+                grid-template-columns: 1fr; /* Single column on very small screens */
+            }
+        }
+        /* === END OF NEW NAVIGATION CARD STYLE === */
+        
+        .form-group { margin-bottom: 20px; }
+        .form-group label {
+            display: block; margin-bottom: 8px; font-weight: 500; color: var(--text-color);
+        }
+        .form-group input[type="text"], .form-group input[type="tel"], .form-group input[type="number"], .form-group select, .form-group textarea {
+            width: 100%; padding: 12px 15px; border: 1px solid var(--border-color);
+            border-radius: 6px; font-size: 1em; box-sizing: border-box; font-family: var(--font-family);
+            background-color: #fdfdfd;
+        }
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+            outline: none; border-color: var(--primary-color);
+            box-shadow: 0 0 0 2px rgba(41, 128, 185, 0.2);
+        }
+        .form-group small { color: var(--text-light-color); font-size: 0.85em; margin-top: 5px; display: block;}
+
+        button.btn {
+            padding: 12px 25px; border-radius: 6px; font-size: 1.05em;
+            background-color: var(--secondary-color); color: white; 
+            border: none; cursor: pointer; font-weight: 600; 
+            transition: background-color 0.2s ease, transform 0.1s ease;
+            display: inline-flex; align-items: center; gap: 8px; text-decoration: none;
+        }
+        button.btn:hover { background-color: #229954; transform: translateY(-2px); }
+        button.btn-primary { background-color: var(--primary-color); }
+        button.btn-primary:hover { background-color: #1f618d; }
+        button.btn-accent { background-color: var(--accent-color); }
+        button.btn-accent:hover { background-color: #d35400; }
+        button.btn-danger { background-color: var(--danger-color); }
+        button.btn-danger:hover { background-color: #c0392b; }
+        button.btn-success { background-color: var(--success-color); }
+        button.btn-success:hover { background-color: #229954; }
+        button.btn-sm { padding: 8px 15px; font-size: 0.9em; }
+
+        /* Create List Page Specifics */
+        #createListPage .product-category-grid {
+            display: grid; 
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 15px; margin-bottom: 25px;
+        }
+        #createListPage .category-button {
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            padding: 15px; border: 1px solid var(--border-color); border-radius: 8px;
+            cursor: pointer; transition: background-color 0.2s, border-color 0.2s;
+            background-color: #f9f9f9; text-align: center;
+        }
+        #createListPage .category-button:hover {
+            background-color: #eaf2f8; border-color: var(--primary-color);
+        }
+        #createListPage .category-button i { font-size: 2em; margin-bottom: 10px; color: var(--primary-color); }
+        #createListPage .category-button span { font-weight: 500; }
+
+        /* Modal Styling */
+        .modal {
+            display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%;
+            overflow: auto; background-color: rgba(0,0,0,0.5);
+        }
+        .modal-content {
+            background-color: var(--card-bg-color); margin: 10% auto; padding: 25px;
+            border-radius: 8px; width: 90%; max-width: 600px; 
+            box-shadow: 0 5px 20px rgba(0,0,0,0.2); position: relative;
+            display: flex; flex-direction: column; 
+        }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .modal-header h4 { margin-top: 0; font-size: 1.5em; color: var(--primary-color); }
+        .modal-close {
+            color: #aaa; font-size: 28px; font-weight: bold; cursor: pointer;
+            background: none; border:none; 
+        }
+        .modal-close:hover, .modal-close:focus { color: var(--text-color); text-decoration: none; }
+        .modal-body { flex-grow: 1; overflow-y: auto; max-height: 60vh; }
+        .modal-body .info-text { font-size: 0.9em; color: var(--text-light-color); margin-bottom: 15px; }
+        .suggestion-buttons { margin-bottom: 20px; display: flex; flex-wrap: wrap; gap: 10px; } 
+        .suggestion-buttons button.btn-suggest {
+            background-color: #ecf0f1; color: var(--text-color); border: 1px solid var(--border-color);
+            padding: 8px 12px; 
+        }
+        .suggestion-buttons button.btn-suggest:hover { background-color: #dfe6e9; }
+
+        #selectedProductsInModal ul { list-style: none; padding: 0; margin-top: 15px; border-top: 1px solid #eee; padding-top: 15px;}
+        #selectedProductsInModal li {
+            display: grid; grid-template-columns: auto 1fr auto; 
+            gap: 10px; align-items: center;
+            padding: 10px 5px; border-bottom: 1px solid #f5f5f5; font-size: 0.95em;
+        }
+        #selectedProductsInModal li:last-child { border-bottom: none; }
+        #selectedProductsInModal .item-name-modal { font-weight: 500; }
+        #selectedProductsInModal .controls-modal-inline { display: flex; gap: 8px; align-items: center; justify-content: flex-end;} 
+        #selectedProductsInModal input[type="number"], 
+        #selectedProductsInModal select, 
+        #selectedProductsInModal .unit-display-container input[type="text"] { 
+            padding: 8px 10px; font-size: 0.9em; border-radius: 5px;
+        }
+        #selectedProductsInModal input[type="number"] { width: 70px; }
+        #selectedProductsInModal select { min-width: 90px; }
+        .unit-display-container { display: flex; align-items: center; gap: 5px; position: relative; }
+        .unit-display-container .unit-text { padding: 8px 10px; border: 1px solid transparent; border-radius: 5px; cursor: pointer; min-width: 65px; text-align: center; background-color: #f9f9f9; }
+        .unit-display-container .unit-text:hover { background-color: #f0f3f5; border-color: #ccc; }
+        .unit-display-container .edit-unit-btn { font-size: 0.85em; padding: 3px 5px; line-height: 1; background: none; border: none; color: var(--primary-color); cursor:pointer; }
+        
+        .unit-dropdown-popup { 
+            display: none; position: absolute; background-color: white;
+            border: 1px solid var(--border-color); border-radius: 5px; box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+            z-index: 1005; padding: 8px; min-width: 120px; 
+            top: 100%; left: 0; margin-top: 2px;
+        }
+        .unit-dropdown-popup button { display: block; width: 100%; text-align: left; padding: 6px 10px; background: none; border: none; cursor: pointer; font-size:0.92em; border-radius: 4px; }
+        .unit-dropdown-popup button:hover { background-color: #eaf2f8; }
+        .unit-dropdown-popup input[type="text"] { width: calc(100% - 12px); margin: 6px; font-size:0.9em; padding: 5px; border-radius: 4px;}
+
+        .modal-footer { 
+            display: flex; justify-content: space-between; align-items: center; 
+            margin-top: 20px; padding-top:15px; border-top: 1px solid var(--border-color);
+            width: 100%;
+        }
+        .modal-footer .btn-danger { background-color: var(--danger-color); }
+        .modal-footer .btn-danger:hover { background-color: #c0392b; }
+        .modal-footer .btn-success { background-color: var(--success-color); }
+        .modal-footer .btn-success:hover { background-color: #229954; }
+
+
+        /* Final Shopping List Preview */
+        #finalShoppingListPreview ul { list-style: none; padding: 0; }
+        #finalShoppingListPreview li {
+            display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center;
+            padding: 12px 15px; margin-bottom:10px; border-radius: 8px; background-color: #f9fafb;
+            border: 1px solid var(--border-color); font-size: 1.05em;
+        }
+        #finalShoppingListPreview .item-info { flex-grow: 1; margin-right:10px;}
+        #finalShoppingListPreview .item-controls-final { display: flex; gap: 10px; align-items: center; margin-top: 8px; width:100%;}
+        @media (min-width: 700px) {
+           #finalShoppingListPreview .item-controls-final { margin-top: 0px; width:auto;}
+        }
+        #finalShoppingListPreview input, #finalShoppingListPreview select { padding: 8px 10px; font-size: 0.95em; border-radius: 5px;}
+        #finalShoppingListPreview .final-item-quantity { width: 70px; }
+        #finalShoppingListPreview .final-item-unit-container .unit-text { 
+            padding: 8px 10px; background-color: #f0f3f5; border-radius: 5px; cursor:pointer;
+        }
+        #finalShoppingListPreview .final-item-notes { flex-grow: 1; min-width: 120px; }
+        #finalShoppingListPreview .btn-danger { padding: 6px 10px; font-size:0.85em;}
+
+        #createListPage .actions-footer-container {
+            background-color: #f8f9fa; padding: 20px; border-radius: 8px;
+            margin-top: 30px; border: 1px solid var(--border-color);
+        }
+        #createListPage .clear-list-section { text-align: center; margin-bottom: 20px; padding-bottom:20px; border-bottom: 1px dashed #ccc;}
+        #createListPage .recipient-and-send-section .form-group { margin-bottom: 15px; }
+        #createListPage .recipient-and-send-section .action-buttons-group { display: flex; flex-wrap: wrap; justify-content: center; gap: 15px; margin-top:10px;}
+
+        .table-container { overflow-x: auto; }
+        #recipientListTable {
+            width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 0.95em;
+        }
+        #recipientListTable th, #recipientListTable td {
+            border: 1px solid var(--border-color); padding: 10px 12px; text-align: left;
+        }
+        #recipientListTable th { background-color: #f1f5f8; font-weight: 600; }
+        #recipientListTable .action-buttons button { margin-right: 6px; }
+
+        #savedItemsContainer .saved-category {
+            margin-bottom: 25px; padding: 20px; background-color: #fdfdfe;
+            border-radius: 8px; border: 1px solid var(--border-color);
+        }
+        #savedItemsContainer .saved-category h4 {
+            font-size: 1.3em; color: var(--primary-color); margin:0 0 15px 0; padding-bottom:10px;
+            border-bottom: 1px solid var(--accent-color); display: flex; align-items: center; gap: 10px;
+        }
+        #savedItemsContainer ul { list-style: disc; padding-left: 25px; }
+        #savedItemsContainer li { margin-bottom: 8px; color: var(--text-light-color); }
+
+        .app-footer {
+            text-align: center; padding: 25px 15px; margin-top: 30px;
+            color: var(--text-light-color); font-size: 0.9em; border-top: 1px solid var(--border-color);
+        }
+
+        #toast {
+            position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%) translateY(120%);
+            background-color: var(--text-color); color: white; padding: 12px 20px;
+            border-radius: 6px; box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            z-index: 2000; opacity: 0; transition: opacity 0.35s, transform 0.35s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+            font-size: 1em; font-weight: 500;
+        }
+        #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+        #toast.success { background-color: var(--success-color); }
+        #toast.error { background-color: var(--danger-color); }
+        #toast.info { background-color: var(--info-color); }
+        #toast.warning { background-color: var(--warning-color); color: #fff; }
+
+        #pdfPreviewArea { display: none; margin-top: 20px; padding: 15px; border: 1px dashed var(--border-color); border-radius: 6px; background-color: #f9f9f9; }
+        #pdfPreviewArea h4 { margin-bottom: 10px; color: var(--primary-color); }
+        #pdfContentForGeneration {
+            font-family: 'Noto Sans Bengali', Arial, sans-serif; padding: 15mm; border: none; background: white;
+            color: #333; width: 180mm; box-sizing: content-box;
+        }
+         #pdfContentForGeneration .pdf-header h2 { font-size: 18pt; margin-bottom: 5mm; color: #2c3e50; text-align: center; }
+         #pdfContentForGeneration .pdf-header p { font-size: 10pt; margin-bottom: 3mm; color: #566573; text-align: center; }
+         #pdfContentForGeneration table { width: 100%; border-collapse: collapse; margin-top:8mm; font-size: 10pt;}
+         #pdfContentForGeneration th, #pdfContentForGeneration td { border: 1px solid #cccccc; padding: 3mm 2mm; text-align: left; vertical-align: top;}
+         #pdfContentForGeneration th { background-color: #e9ecef; font-weight: bold; color: #495057;}
+         #pdfContentForGeneration .category-header-pdf { 
+             font-size: 12pt; font-weight: bold; margin-top: 6mm; margin-bottom: 2mm; 
+             padding: 2mm 0; border-bottom: 1px solid #adb5bd; color: #343a40;
+         }
+         #pdfContentForGeneration .pdf-footer {
+            font-size: 8pt; color: #7f8c8d; text-align: center; margin-top: 10mm;
+            border-top: 1px solid #dee2e6; padding-top: 3mm;
+         }
+        .hidden { display: none !important; }
+
+        /* === MOBILE RESPONSIVE STYLES === */
+        @media (max-width: 768px) {
+            .page-header {
+                flex-direction: column;
+                gap: 15px;
+                align-items: flex-start;
+            }
+        }
+        @media (max-width: 600px) {
+            body { font-size: 15px; }
+            .page-container { padding: 10px; }
+            .page { padding: 20px; }
+
+            #homePage .main-title h1 { font-size: 1.6em; }
+            .page-header h2 { font-size: 1.5em; }
+
+            .nav-card h3 { font-size: 1.3em; }
+
+            button.btn { padding: 10px 18px; font-size: 1em; }
+
+            .modal-content {
+                padding: 20px;
+                margin: 5% auto;
+                max-height: 85vh;
+            }
+            .modal-header h4 { font-size: 1.3em; }
+            #selectedProductsInModal li {
+                grid-template-columns: 1fr;
+                gap: 12px;
+            }
+             #selectedProductsInModal .controls-modal-inline {
+                justify-content: space-between;
+             }
+            .app-footer { font-size: 0.8em; }
+        }
+    </style>
+</head>
+<body>
+    <div class="page-container">
+        <!-- HomePage (Default Active Page) -->
+        <div id="homePage" class="page active">
+            <header class="main-title">
+                <h1><i class="fas fa-store-alt"></i> বাজারের তালিকা</h1>
+            </header>
+            <div class="navigation-grid">
+                <div class="nav-card" data-page="createListPage">
+                    <h3>তালিকা তৈরি</h3>
+                    <p>নতুন করে বাজারের তালিকা তৈরি ও প্রেরণ করুন।</p>
+                </div>
+                <div class="nav-card" data-page="viewSavedListsPage">
+                    <h3>সংরক্ষিত পণ্য</h3>
+                    <p>সকল পণ্যের তালিকা ও বিভাগগুলো দেখুন।</p>
+                </div>
+                <div class="nav-card" data-page="addNewItemsPage">
+                    <h3>নতুন পণ্য যোগ</h3>
+                    <p>তালিকায় নতুন বিভাগ বা নির্দিষ্ট পণ্য যোগ করুন।</p>
+                </div>
+                <div class="nav-card" data-page="manageRecipientsPage">
+                    <h3>প্রেরকের তথ্য</h3>
+                    <p>WhatsApp নম্বর যোগ, পরিবর্তন বা মুছে ফেলুন।</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Create List Page -->
+        <div id="createListPage" class="page">
+            <div class="page-header">
+                <h2><i class="fas fa-pencil-alt"></i> তালিকা তৈরি করুন</h2>
+                <a href="#" class="back-to-home" data-target="homePage"><i class="fas fa-arrow-left"></i> হোমে ফিরে যান</a>
+            </div>
+            
+            <p style="background-color: #eaf2f8; color: #34495e; padding: 12px; border-radius: 6px; border-left: 5px solid var(--info-color); margin-bottom: 25px; font-size: 0.95em;">
+                <strong>বিশেষ নির্দেশনা:</strong> তালিকা তৈরি ও প্রেরণ করার পর, নতুন তালিকা শুরু করার জন্য নিচে থাকা 'সম্পূর্ণ তালিকা মুছুন' বাটনে ক্লিক করতে পারেন।
+            </p>
+
+            <h3>পণ্যের বিভাগসমূহ (ক্লিক করে পণ্য যোগ করুন):</h3>
+            <div class="product-category-grid" id="productCategoryGrid"></div>
+
+            <h3>আপনার চূড়ান্ত বাজারের তালিকা:</h3>
+            <div id="finalShoppingListPreview">
+                 <ul id="finalShoppingListUl">
+                    <li id="noItemsSelectedMsg" style="text-align:center; padding: 20px; background:none; border:none; color:var(--text-light-color); font-style: italic;">এখনও কোনো পণ্য নির্বাচন করা হয়নি।</li>
+                 </ul>
+            </div>
+            
+            <div class="actions-footer-container">
+                <div class="clear-list-section">
+                    <button class="btn btn-danger btn-sm" id="clearEntireListBtn"><i class="fas fa-trash-alt"></i> সম্পূর্ণ তালিকা মুছুন</button>
+                </div>
+                <div class="recipient-and-send-section">
+                    <div class="form-group">
+                        <label for="selectRecipient">প্রাপক নির্বাচন করুন:</label>
+                        <select id="selectRecipient">
+                            <option value="">-- প্রাপক নির্বাচন করুন --</option>
+                        </select>
+                         <small>প্রাপক তালিকায় না থাকলে "প্রেরকের তথ্য" পাতা থেকে যোগ করুন।</small>
+                    </div>
+                    <div class="action-buttons-group">
+                        <button class="btn btn-primary" id="sendAsMessageBtn"><i class="fas fa-paper-plane"></i> মেসেজ পাঠান</button>
+                        <button class="btn btn-accent" id="sendAsPdfBtn"><i class="fas fa-file-pdf"></i> PDF পাঠান</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="pdfPreviewArea">
+                <h4>PDF প্রিভিউ (তৈরি হচ্ছে...)</h4>
+                <div id="pdfContentForGeneration"></div>
+            </div>
+        </div>
+
+        <!-- View Saved Lists Page -->
+        <div id="viewSavedListsPage" class="page">
+            <div class="page-header"><h2><i class="fas fa-book-open"></i> সংরক্ষিত পণ্য ও সেকশন</h2><a href="#" class="back-to-home" data-target="homePage"><i class="fas fa-arrow-left"></i> হোমে ফিরে যান</a></div>
+            <div id="savedItemsContainer"></div>
+        </div>
+        <!-- Add New Items/Sections Page -->
+        <div id="addNewItemsPage" class="page">
+            <div class="page-header"><h2><i class="fas fa-folder-plus"></i> নতুন সেকশন বা পণ্য যোগ</h2><a href="#" class="back-to-home" data-target="homePage"><i class="fas fa-arrow-left"></i> হোমে ফিরে যান</a></div>
+            <div style="background: #f9f9f9; padding: 20px; border-radius: 8px; margin-bottom: 30px;">
+                <h4><i class="fas fa-archive"></i> নতুন সেকশন যোগ করুন</h4>
+                <div class="form-group"><label for="newSectionName">সেকশনের নাম:</label><input type="text" id="newSectionName" placeholder="যেমন: শিশুর খাবার, কসমেটিকস"></div>
+                <div class="form-group"><label for="newSectionIcon">সেকশনের আইকন (Font Awesome Class):</label><input type="text" id="newSectionIcon" placeholder="যেমন: fas fa-baby-carriage"><small>আইকন তালিকা: <a href="https://fontawesome.com/search?m=free&s=solid%2Cregular%2Cbrands" target="_blank" rel="noopener noreferrer">Font Awesome Free Icons</a> (যেমন: fas fa-home)</small></div>
+                <button class="btn" id="addNewSectionBtn"><i class="fas fa-plus-circle"></i> সেকশন যোগ</button>
+            </div>
+            <div style="background: #f9f9f9; padding: 20px; border-radius: 8px;">
+                <h4><i class="fas fa-cart-plus"></i> বিদ্যমান সেকশনে নতুন পণ্য যোগ করুন</h4>
+                <div class="form-group"><label for="selectSectionForNewProduct">সেকশন নির্বাচন করুন:</label><select id="selectSectionForNewProduct"><option value="">-- সেকশন নির্বাচন করুন --</option></select></div>
+                <div class="form-group"><label for="newProductNameInSection">পণ্যের নাম:</label><input type="text" id="newProductNameInSection" placeholder="যেমন: নুডুলস, সয়াবিন তেল"></div>
+                <div class="form-group"><label for="newProductDefaultUnit">পণ্যের ডিফল্ট একক:</label><input type="text" id="newProductDefaultUnit" placeholder="যেমন: কেজি, পিস, লিটার, প্যাকেট"></div>
+                <div class="form-group"><label for="newProductVariations">সম্ভাব্য প্রকারভেদ (কমা দিয়ে আলাদা করুন, ঐচ্ছিক):</label><input type="text" id="newProductVariations" placeholder="সাধারণ, লাল, সাদা (ঐচ্ছিক)"></div>
+                <button class="btn" id="addNewProductToSectionBtn"><i class="fas fa-cart-plus"></i> পণ্য যোগ করুন</button>
+            </div>
+        </div>
+        <!-- Manage Recipients Page -->
+        <div id="manageRecipientsPage" class="page">
+            <div class="page-header"><h2><i class="fas fa-address-book"></i> প্রেরকের তথ্য ব্যবস্থাপনা</h2><a href="#" class="back-to-home" data-target="homePage"><i class="fas fa-arrow-left"></i> হোমে ফিরে যান</a></div>
+            <div class="form-group"><label for="recipientName">নাম:</label><input type="text" id="recipientName" placeholder="প্রাপকের নাম"></div>
+            <div class="form-group"><label for="recipientWhatsappNumber">WhatsApp নম্বর (দেশ কোড সহ):</label><input type="tel" id="recipientWhatsappNumber" placeholder="01XXXXXXXXX অথবা 8801XXXXXXXXX"></div>
+            <input type="hidden" id="editingRecipientId">
+            <button class="btn" id="addOrUpdateRecipientBtn"><i class="fas fa-user-plus"></i> প্রাপক যোগ/আপডেট করুন</button>
+            <h4 style="margin-top:30px; margin-bottom:15px; font-size:1.3em;">সংরক্ষিত প্রাপকগণ:</h4>
+            <div class="table-container"><table id="recipientListTable"><thead><tr><th>নাম</th><th>WhatsApp নম্বর</th><th>কার্যক্রম</th></tr></thead><tbody id="recipientListBody"></tbody></table></div>
+        </div>
+
+    </div> <!-- End .page-container -->
+    
+    <!-- Product Modal -->
+    <div id="productModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 id="modalCategoryName">পণ্যের নাম</h4>
+                <button class="modal-close" title="বন্ধ করুন" onclick="closeModalAndClearTempItems()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p class="info-text">আপনি একাধিক পণ্য একসাথে নির্বাচন করতে পারবেন। পরিমাণ ও একক প্রয়োজন অনুযায়ী পরিবর্তন করুন।</p>
+                <div class="form-group">
+                    <label for="customProductName">নতুন পণ্য যোগ (বা নিজের মতো লিখুন):</label>
+                    <div style="display:flex; gap:8px;">
+                        <input type="text" id="customProductName" placeholder="পণ্যের নাম লিখে Enter বা যোগ বাটনে ক্লিক">
+                        <button class="btn btn-sm btn-primary" id="addCustomProductFromModalBtn" title="এই পণ্যটি যোগ করুন"><i class="fas fa-plus"></i> যোগ</button>
+                    </div>
+                </div>
+                <label>অথবা নিচের সাজেশন থেকে বেছে নিন:</label>
+                <div class="suggestion-buttons" id="productSuggestionButtons">
+                    <!-- Suggestion buttons -->
+                </div>
+                <hr style="margin: 18px 0;">
+                <h4>এই ধাপে যোগ করা বা পরিবর্তিত পণ্য:</h4>
+                <div id="selectedProductsInModal">
+                    <ul></ul>
+                    <p id="noModalItemsMsg" style="text-align:center; color:var(--text-light-color); font-style:italic; padding: 10px 0;">এখনও কোনো পণ্য যোগ করা হয়নি।</p>
+                </div>
+            </div>
+            <div class="modal-footer" style="overflow: hidden; padding-bottom: 10px;">
+                <button class="btn btn-danger" id="cancelModalBtn" style="float: left;"><i class="fas fa-times-circle"></i> বাতিল করুন</button>
+                <button class="btn btn-success" id="confirmCategoryProductsBtn" style="float: right;"><i class="fas fa-check-double"></i> তালিকায় যোগ করুন</button>
+            </div>
+        </div>
+    </div>
+    
+    <div id="toast"></div>
+
+    <footer class="app-footer">
+        <p>&copy; <span id="currentYear"></span> বাজারের তালিকা। সর্বস্বত্ব সংরক্ষিত।</p>
+        <p>ওয়েবসাইটটি তৈরি করেছেন: <strong>আব্দুল হালিম সায়েম</strong></p>
+    </footer>
+
+    <script>
+    // --- Global Variables and Initial Data (UPDATED AS PER YOUR REQUEST) ---
+    let appData = {
+        categories: [
+            { id: 'cat_fish_main', name: 'মাছ', icon: 'fas fa-fish', items: [
+                { name: 'ইলিশ মাছ', defaultUnit: 'পিস', variations: ['সাধারণ','ছোট','মাঝারি (৭০০গ্রাম-১কেজি)','বড় (১কেজি+)'] },
+                { name: 'রুই মাছ', defaultUnit: 'কেজি', variations: ['সাধারণ','আস্ত','কাটা (পেটি)','কাটা (গাদা)'] },
+                { name: 'কাতল মাছ', defaultUnit: 'কেজি', variations: ['সাধারণ','আস্ত','কাটা (মাঝারি)'] },
+                { name: 'চিংড়ি মাছ', defaultUnit: 'কেজি', variations: ['সাধারণ','গলদা','বাগদা','ছোট/গুড়া'] },
+                { name: 'পাঙ্গাস মাছ', defaultUnit: 'কেজি', variations: ['সাধারণ'] }, { name: 'তেলাপিয়া মাছ', defaultUnit: 'কেজি', variations: ['সাধারণ'] },
+                { name: 'শিং মাছ', defaultUnit: 'কেজি', variations: ['সাধারণ'] }, { name: 'মাগুর মাছ', defaultUnit: 'কেজি', variations: ['সাধারণ'] },
+                { name: 'পাবদা মাছ', defaultUnit: 'কেজি', variations: ['সাধারণ'] }, { name: 'কৈ মাছ', defaultUnit: 'কেজি', variations: ['সাধারণ'] },
+            ]},
+            { id: 'cat_meat_main', name: 'মাংস', icon: 'fas fa-drumstick-bite', items: [
+                { name: 'গরুর মাংস', defaultUnit: 'কেজি', variations: ['সাধারণ', 'হাড়সহ','হাড়ছাড়া','সলিড (সিনামুক্ত)'] },
+                { name: 'মুরগি', defaultUnit: 'কেজি', variations: ['সাধারণ', 'ব্রয়লার (আস্ত)','ব্রয়লার (কাটা)','সোনালী (আস্ত)','সোনালী (কাটা)','দেশি','লেয়ার','কক'] },
+                { name: "খাসির মাংস", defaultUnit: "কেজি", variations: ["সাধারণ", "রেওয়াজি (চর্বিসহ)", "হাড়সহ (খাসি)"] },
+                { name: "হাঁস", defaultUnit: "কেজি", variations: ["সাধারণ", "চিনা হাঁস", "রাজহাঁস"]},
+                { name: "কবুতর", defaultUnit: "পিস", variations: ["সাধারণ", "জালালি"]},
+            ]},
+            { id: 'cat_veg_main', name: 'শাকসবজি', icon: 'fas fa-carrot', items: [
+                { name: 'আলু', defaultUnit: 'কেজি', variations: ['সাধারণ', 'লাল (ডায়মন্ড)','সাদা (কার্ডিনাল)','দেশি (ছোট)'] },
+                { name: 'পেঁয়াজ', defaultUnit: 'কেজি', variations: ['সাধারণ', 'দেশি','ইন্ডিয়ান (বড়)'] },
+                { name: 'রসুন', defaultUnit: 'কেজি', variations: ['সাধারণ', 'দেশি','ইন্ডিয়ান (বড় কোয়া)'] },
+                { name: 'আদা', defaultUnit: 'কেজি', variations: ['সাধারণ', 'দেশি','ইন্ডিয়ান'] },
+                { name: 'টমেটো', defaultUnit: 'কেজি', variations: ['সাধারণ', 'দেশি','হাইব্রিড'] },
+                { name: 'কাঁচা মরিচ', defaultUnit: 'গ্রাম', variations: ['সাধারণ'] },
+                { name: 'বেগুন', defaultUnit: 'কেজি', variations: ['সাধারণ', 'লম্বা','গোল','সাদা'] },
+                { name: 'লাউ', defaultUnit: 'পিস', variations: ['সাধারণ'] }, { name: 'মিষ্টি কুমড়া', defaultUnit: 'কেজি', variations: ['সাধারণ','ফালি'] },
+                { name: 'চাল কুমড়া', defaultUnit: 'পিস', variations: ['সাধারণ','ফালি'] }, { name: 'গাজর', defaultUnit: 'কেজি', variations: ['সাধারণ'] },
+                { name: 'শসা', defaultUnit: 'কেজি', variations: ['সাধারণ'] }, { name: 'করলা', defaultUnit: 'কেজি', variations: ['সাধারণ'] },
+                { name: 'ঢেঁড়স', defaultUnit: 'কেজি', variations: ['সাধারণ'] }, { name: 'বরবটি', defaultUnit: 'কেজি', variations: ['সাধারণ'] },
+                { name: 'ফুলকপি', defaultUnit: 'পিস', variations: ['সাধারণ'] }, { name: 'বাঁধাকপি', defaultUnit: 'পিস', variations: ['সাধারণ'] },
+                { name: 'পালং শাক', defaultUnit: 'আঁটি', variations: ['সাধারণ'] }, { name: 'লাল শাক', defaultUnit: 'আঁটি', variations: ['সাধারণ'] },
+                { name: 'পুঁই শাক', defaultUnit: 'আঁটি', variations: ['সাধারণ'] }, { name: 'কলমি শাক', defaultUnit: 'আঁটি', variations: ['সাধারণ'] },
+                { name: 'ধনে পাতা', defaultUnit: 'আঁটি', variations: ['সাধারণ'] },
+                { name: 'লেবু', defaultUnit: 'হালি', variations:['সাধারণ','কাগজি','এলাচি','সিডলেস'] },
+            ]},
+            { id: 'cat_fruits_main', name: 'ফল', icon: 'fas fa-apple-alt', items: [
+                { name: 'কলা', defaultUnit: 'ডজন', variations:['সাধারণ',' সাগর','সবরি','চাঁপা','অন্যান্য'] },
+                { name: 'আম (সিজনাল)', defaultUnit: 'কেজি', variations:['সাধারণ','ল্যাংড়া','আম্রপালি','ফজলি','হিমসাগর','বারি-৪'] },
+                { name: 'আপেল', defaultUnit: 'কেজি', variations:['সাধারণ','লাল','সবুজ','ফুজি'] },
+                { name: 'পেয়ারা', defaultUnit: 'কেজি', variations:['সাধারণ','দেশি','থাই'] },
+                { name: 'কমলা', defaultUnit: 'কেজি', variations:['সাধারণ','নাগপুরি'] },
+                { name: 'মাল্টা', defaultUnit: 'কেজি', variations:['সাধারণ'] },
+                { name: 'আনারস', defaultUnit: 'পিস', variations:['সাধারণ'] },
+                { name: 'তরমুজ (সিজনাল)', defaultUnit: 'পিস', variations:['সাধারণ'] }, { name: 'পেঁপে', defaultUnit: 'পিস', variations:['সাধারণ','কাঁচা','পাকা'] },
+                { name: 'আনার (ডালিম)', defaultUnit: 'পিস', variations:['সাধারণ'] }, { name: 'আঙ্গুর', defaultUnit: 'কেজি', variations:['সাধারণ','কালো','সবুজ'] },
+                { name: 'লিচু (সিজনাল)', defaultUnit: 'শত', variations:['সাধারণ'] }, { name: 'খেজুর', defaultUnit: 'কেজি', variations:['সাধারণ'] },
+            ]},
+            { id: 'cat_grocery_main', name: 'চাল-ডাল ও মুদি', icon: 'fas fa-shopping-basket', items: [
+                { name: 'চাল', defaultUnit: 'কেজি', variations: ['সাধারণ', 'মিনিকেট','নাজিরশাইল','পাইজাম','বাসমতি','পোলাওর চাল (কালোজিরা)','চিনিগুঁড়া','আতপ চাল','অন্যান্য'] },
+                { name: 'মসুর ডাল', defaultUnit: 'কেজি', variations:['সাধারণ','দেশি (ছোট)','মোটা (ইন্ডিয়ান)'] },
+                { name: 'মুগ ডাল', defaultUnit: 'কেজি', variations:['সাধারণ'] }, { name: 'ছোলা', defaultUnit: 'কেজি', variations:['সাধারণ'] },
+                { name: 'বেসন', defaultUnit: 'প্যাকেট', variations:['সাধারণ'] },
+                { name: 'আটা', defaultUnit: 'কেজি', variations:['সাধারণ','খোলা','প্যাকেট (তীর/ফ্রেশ/ইত্যাদি)'] },
+                { name: 'ময়দা', defaultUnit: 'কেজি', variations:['সাধারণ'] }, { name: 'সুজি', defaultUnit: 'প্যাকেট', variations:['সাধারণ'] },
+                { name: 'লবণ', defaultUnit: 'প্যাকেট', variations:['সাধারণ'] },
+                { name: 'সয়াবিন তেল', defaultUnit: 'লিটার', variations:['সাধারণ','বোতল (১লিঃ)','বোতল (২লিঃ)','বোতল (৫লিঃ)'] },
+                { name: 'সরিষার তেল', defaultUnit: 'লিটার', variations:['সাধারণ','বোতল'] },
+                { name: 'অলিভ অয়েল', defaultUnit: 'বোতল', variations:['সাধারণ'] },
+                { name: 'ডিম', defaultUnit: 'ডজন', variations:['সাধারণ','ফার্মের লাল','ফার্মের সাদা','দেশি মুরগির','হাঁসের'] },
+            ]},
+            { id: 'cat_spice_main', name: 'মসলাপাতি', icon: 'fas fa-mortar-pestle', items: [
+                { name: 'হলুদ গুঁড়া', defaultUnit: 'গ্রাম', variations:['সাধারণ'] }, { name: 'মরিচ গুঁড়া', defaultUnit: 'গ্রাম', variations:['সাধারণ'] },
+                { name: 'ধনিয়া গুঁড়া', defaultUnit: 'গ্রাম', variations:['সাধারণ'] }, { name: 'জিরা', defaultUnit: 'গ্রাম', variations:['সাধারণ','আস্ত','গুঁড়া'] },
+                { name: 'পাঁচ ফোড়ন', defaultUnit: 'গ্রাম', variations:['সাধারণ'] }, { name: 'এলাচ', defaultUnit: 'গ্রাম', variations:['সাধারণ'] },
+                { name: 'লবঙ্গ', defaultUnit: 'গ্রাম', variations:['সাধারণ'] }, { name: 'দারুচিনি', defaultUnit: 'গ্রাম', variations:['সাধারণ'] },
+                { name: 'তেজপাতা', defaultUnit: 'গ্রাম', variations:['সাধারণ'] }, { name: 'গোলমরিচ', defaultUnit: 'গ্রাম', variations:['সাধারণ','আস্ত','গুঁড়া'] },
+                { name: 'গরম মসলা (মিক্স)', defaultUnit: 'প্যাকেট', variations:['সাধারণ'] }, { name: 'আদা বাটা', defaultUnit: 'প্যাকেট', variations:['সাধারণ'] },
+                { name: 'রসুন বাটা', defaultUnit: 'প্যাকেট', variations:['সাধারণ'] }, { name: 'পেঁয়াজ বাটা', defaultUnit: 'প্যাকেট', variations:['সাধারণ'] },
+            ]},
+            // === NEW "TEA & BEVERAGES" CATEGORY ===
+            { id: 'cat_tea_beverages_new', name: 'চা ও পানীয়', icon: 'fas fa-mug-saucer', items: [
+                { name: 'চা পাতা', defaultUnit: 'প্যাকেট', variations:['সাধারণ'] }, 
+                { name: 'কফি', defaultUnit: 'প্যাকেট', variations:['সাধারণ'] },
+                { name: 'চিনি', defaultUnit: 'কেজি', variations:['সাধারণ', 'ফ্রেশ', 'দেশি'] },
+                { name: 'গুঁড়া দুধ', defaultUnit: 'প্যাকেট', variations:['ডানো','ডিপ্লোমা','মার্কস'] },
+                { name: 'তরল দুধ', defaultUnit: 'লিটার', variations:['সাধারণ', 'আড়ং', 'মিল্কভিটা'] },
+                { name: 'বিস্কুট', defaultUnit: 'প্যাকেট', variations:['সাধারণ', 'এনার্জি প্লাস', 'টোস্ট', 'ডাইজেস্টিভ'] },
+                { name: 'সফট ড্রিংকস', defaultUnit: 'বোতল', variations:['কোকাকোলা','পেপসি','স্প্রাইট','ফান্টা'] },
+                { name: 'ট্যাং', defaultUnit: 'প্যাকেট', variations:['সাধারণ', 'অরেঞ্জ'] },
+                { name: 'জুস', defaultUnit: 'প্যাকেট', variations:['প্রাণ ফ্রুটো', 'ফ্রুটিকা'] },
+                { name: 'মিনারেল ওয়াটার', defaultUnit: 'বোতল', variations:['সাধারণ', 'মাম', 'ফ্রেশ'] },
+            ]},
+            // === NEW "SOAP & DETERGENT" CATEGORY ===
+            { id: 'cat_soap_detergent_new', name: 'সাবান ও ডিটারজেন্ট', icon: 'fas fa-soap', items: [
+                { name: 'গোসলের সাবান', defaultUnit: 'পিস', variations:['লাক্স','লাইফবয়','ডেটল','স্যাভলন'] },
+                { name: 'কাপড় কাচার সাবান', defaultUnit: 'পিস', variations:['হুইল','তিব্বত ৫৭০'] },
+                { name: 'ডিটারজেন্ট পাউডার', defaultUnit: 'প্যাকেট', variations:['সার্ফ এক্সেল','হুইল','রিন'] },
+                { name: 'থালা-বাসন ধোয়ার সাবান', defaultUnit: 'পিস', variations:['ভিম বার'] },
+                { name: 'থালা-বাসন ধোয়ার লিকুইড', defaultUnit: 'বোতল', variations:['ভিম লিকুইড'] },
+            ]},
+            { id: 'cat_dry_other_food', name: 'শুকনো ও অন্যান্য খাবার', icon: 'fas fa-box-open', items: [
+                { name: 'পাউরুটি', defaultUnit: 'প্যাকেট', variations:['সাধারণ'] }, { name: 'বনরুটি', defaultUnit: 'পিস', variations:['সাধারণ'] },
+                { name: 'নুডুলস', defaultUnit: 'প্যাকেট', variations:['ম্যাগি','কোকোলা'] }, { name: 'পাস্তা', defaultUnit: 'প্যাকেট', variations:['সাধারণ'] }, 
+                { name: 'সেমাই', defaultUnit: 'প্যাকেট', variations:['সাধারণ','লাচ্ছা'] },
+                { name: 'মুড়ি', defaultUnit: 'প্যাকেট', variations:['সাধারণ'] }, { name: 'চানাচুর', defaultUnit: 'প্যাকেট', variations:['সাধারণ', 'বোম্বে সুইটস'] }, 
+                { name: 'কর্নফ্লেক্স', defaultUnit: 'প্যাকেট', variations:['সাধারণ'] },
+            ]},
+            { id: 'cat_household_main', name: 'গৃহস্থালি সামগ্রী', icon: 'fas fa-pump-bottle', items: [
+                { name: 'টয়লেট ক্লিনার', defaultUnit: 'বোতল', variations:['হারপিক'] },
+                { name: 'ফ্লোর ক্লিনার', defaultUnit: 'বোতল', variations:['লাইজল'] },
+                { name: 'গ্লাস ক্লিনার', defaultUnit: 'বোতল', variations:['সাধারণ'] },
+                { name: 'টিস্যু পেপার (মুখ মোছার)', defaultUnit: 'বক্স', variations:['সাধারণ'] },
+                { name: 'টিস্যু পেপার (রোল)', defaultUnit: 'পিস', variations:['সাধারণ'] },
+                { name: 'মশা তাড়ানোর কয়েল', defaultUnit: 'প্যাকেট', variations:['সাধারণ','কয়েল','স্প্রে','রিফিল'] },
+                { name: 'এয়ার ফ্রেশনার', defaultUnit: 'বোতল', variations:['সাধারণ'] },
+                { name: 'টয়লেট টিস্যু', defaultUnit: 'রোল', variations:['সাধারণ'] },
+                { name: 'ন্যাফথলিন', defaultUnit: 'প্যাকেট', variations:['সাধারণ'] },
+                { name: 'ব্যাটারি', defaultUnit: 'পিস', variations:['পেন্সিল','ঘড়ির','অন্যান্য'] },
+            ]},
+            { id: 'cat_personal_care_main', name: 'ব্যক্তিগত পরিচর্যা', icon: 'fas fa-spa', items: [ 
+                { name: 'শ্যাম্পু', defaultUnit: 'বোতল', variations:['সাধারণ'] },
+                { name: 'কন্ডিশনার', defaultUnit: 'বোতল', variations:['সাধারণ'] },
+                { name: 'টুথপেস্ট', defaultUnit: 'টিউব', variations:['সাধারণ'] },
+                { name: 'টুথব্রাশ', defaultUnit: 'পিস', variations:['সাধারণ'] },
+                { name: 'ফেসওয়াশ', defaultUnit: 'টিউব', variations:['সাধারণ'] },
+                { name: 'লোশন', defaultUnit: 'বোতল', variations:['সাধারণ'] },
+                { name: 'ক্রিম', defaultUnit: 'টিউব', variations:['সাধারণ'] },
+                { name: 'শেভিং ফোম', defaultUnit: 'বোতল', variations:['সাধারণ','ক্রিম','জেল'] },
+                { name: 'রেজর', defaultUnit: 'পিস', variations:['সাধারণ','ব্লেড'] },
+                { name: 'ট্যালকম পাউডার', defaultUnit: 'বোতল', variations:['সাধারণ'] },
+                { name: 'ডিওডোরেন্ট', defaultUnit: 'বোতল', variations:['সাধারণ','পারফিউম'] },
+                { name: 'নারিকেল তেল', defaultUnit: 'বোতল', variations:['সাধারণ'] },
+                { name: 'হেয়ার অয়েল (অন্যান্য)', defaultUnit: 'বোতল', variations:['সাধারণ'] },
+                { name: 'ডেটল', defaultUnit: 'বোতল', variations:['সাধারণ', 'লিকুইড (Antiseptic)', 'স্যাভলন'] }, // ADDED Dettol
+            ]},
+             { id: 'cat_baby_main', name: 'শিশুর পণ্য', icon: 'fas fa-baby-carriage', items: [
+                { name: 'ডায়াপার', defaultUnit: 'প্যাকেট', variations: ['সাধারণ','নবজাতক','ছোট (S)','মাঝারি (M)','বড় (L)','এক্সট্রা বড় (XL)'] },
+                { name: 'বেবি ফুড', defaultUnit: 'প্যাকেট', variations:['সিরিয়াল','জার'] },
+                { name: 'বেবি ওয়াইপস', defaultUnit: 'প্যাকেট', variations:['সাধারণ'] },
+                { name: 'বেবি লোশন', defaultUnit: 'বোতল', variations:['সাধারণ'] },
+                { name: 'বেবি অয়েল', defaultUnit: 'বোতল', variations:['সাধারণ'] },
+                { name: 'বেবি পাউডার', defaultUnit: 'বোতল', variations:['সাধারণ'] },
+                { name: 'বেবি শ্যাম্পু', defaultUnit: 'বোতল', variations:['সাধারণ'] },
+                { name: 'বেবি সোপ', defaultUnit: 'পিস', variations:['সাধারণ'] },
+             ]},
+        ],
+        recipients: [],
+        currentShoppingList: [], 
+        currentModalCategory: null, 
+        currentModalItems: [] 
+    };
+
+    const DOMElements = {
+        pages: { home: document.getElementById('homePage'), createList: document.getElementById('createListPage'), viewSavedLists: document.getElementById('viewSavedListsPage'), addNewItems: document.getElementById('addNewItemsPage'), manageRecipients: document.getElementById('manageRecipientsPage'), },
+        navCards: document.querySelectorAll('.nav-card'), backToHomeButtons: document.querySelectorAll('.back-to-home'),
+        createList: { selectRecipient: document.getElementById('selectRecipient'), productCategoryGrid: document.getElementById('productCategoryGrid'), finalShoppingListUl: document.getElementById('finalShoppingListUl'), noItemsSelectedMsg: document.getElementById('noItemsSelectedMsg'), sendAsMessageBtn: document.getElementById('sendAsMessageBtn'), sendAsPdfBtn: document.getElementById('sendAsPdfBtn'), clearEntireListBtn: document.getElementById('clearEntireListBtn'), },
+        modal: { productModal: document.getElementById('productModal'), categoryName: document.getElementById('modalCategoryName'), customProductName: document.getElementById('customProductName'), addCustomProductBtn: document.getElementById('addCustomProductFromModalBtn'), suggestionButtons: document.getElementById('productSuggestionButtons'), selectedProductsUl: document.querySelector('#selectedProductsInModal ul'), noModalItemsMsg: document.getElementById('noModalItemsMsg'), cancelModalBtn: document.getElementById('cancelModalBtn'), confirmBtn: document.getElementById('confirmCategoryProductsBtn'), },
+        savedLists: { container: document.getElementById('savedItemsContainer'), },
+        addNew: { sectionName: document.getElementById('newSectionName'), sectionIcon: document.getElementById('newSectionIcon'), addSectionBtn: document.getElementById('addNewSectionBtn'), selectSectionForProduct: document.getElementById('selectSectionForNewProduct'), productName: document.getElementById('newProductNameInSection'), productDefaultUnit: document.getElementById('newProductDefaultUnit'), productVariations: document.getElementById('newProductVariations'), addProductBtn: document.getElementById('addNewProductToSectionBtn'), },
+        recipients: { name: document.getElementById('recipientName'), number: document.getElementById('recipientWhatsappNumber'), editingId: document.getElementById('editingRecipientId'), addUpdateBtn: document.getElementById('addOrUpdateRecipientBtn'), listBody: document.getElementById('recipientListBody'), },
+        pdf: { previewArea: document.getElementById('pdfPreviewArea'), contentForGeneration: document.getElementById('pdfContentForGeneration'), },
+        toast: document.getElementById('toast'), currentYear: document.getElementById('currentYear'),
+    };
+    
+    const COMMON_UNITS = ['পিস', 'কেজি', 'গ্রাম', 'লিটার', 'মিলি', 'প্যাকেট', 'বোতল', 'ডজন', 'হালি', 'আঁটি', 'বস্তা', 'কার্টুন', 'টি'];
+
+
+    // --- Utility Functions ---
+    function showToast(message, type = 'info', duration = 3000) { 
+        DOMElements.toast.textContent = message; DOMElements.toast.className = 'toast show ' + type;
+        setTimeout(() => { DOMElements.toast.className = 'toast'; }, duration);
+    }
+    function generateId(prefix = 'id') { 
+        return `${prefix}_${Date.now().toString(36)}_${Math.random().toString(36).substr(2, 5)}`;
+    }
+
+    // --- Page Navigation ---
+    function navigateToPage(pageId) { 
+        Object.values(DOMElements.pages).forEach(page => page.classList.remove('active'));
+        const targetPage = DOMElements.pages[pageId] || document.getElementById(pageId);
+        if (targetPage) { targetPage.classList.add('active'); window.scrollTo({ top: 0, behavior: 'smooth' }); }
+        else { navigateToPage('homePage'); } 
+    }
+    DOMElements.navCards.forEach(card => { 
+        card.addEventListener('click', () => {
+            const pageId = card.dataset.page;
+            if (pageId === 'viewSavedListsPage') renderSavedLists();
+            if (pageId === 'addNewItemsPage') populateSectionDropdownForNewProduct();
+            if (pageId === 'manageRecipientsPage') renderRecipientList();
+            if (pageId === 'createListPage') { renderProductCategories(); renderFinalShoppingListPreview(); populateRecipientDropdown(); }
+            navigateToPage(pageId);
+        });
+    });
+    DOMElements.backToHomeButtons.forEach(button => { 
+        button.addEventListener('click', (e) => { e.preventDefault(); navigateToPage(e.target.dataset.target || 'homePage'); });
+    });
+
+
+    // --- Local Storage ---
+    function saveDataToLocalStorage() { localStorage.setItem('bazarTalikaAppData_v6_hs_final_reorg', JSON.stringify(appData)); } 
+    function loadDataFromLocalStorage() {
+        const storedData = localStorage.getItem('bazarTalikaAppData_v6_hs_final_reorg');
+        if (storedData) {
+            const parsedData = JSON.parse(storedData);
+            // Deep merge to preserve structure while updating data
+            appData.categories = parsedData.categories || appData.categories;
+            appData.recipients = parsedData.recipients || [];
+            appData.currentShoppingList = parsedData.currentShoppingList || [];
+        }
+        // Ensure data integrity after loading
+        appData.categories.forEach(cat => {
+            if (!cat.items) cat.items = [];
+            cat.items.forEach(item => {
+                if (!item.defaultUnit) item.defaultUnit = 'পিস'; 
+                if (!item.variations) item.variations = [];
+                const hasGeneralVariation = item.variations.some(v => v.toLowerCase() === 'সাধারণ');
+                if (!hasGeneralVariation) {
+                    item.variations.unshift('সাধারণ');
+                }
+            });
+        });
+    }
+    
+    // --- Modal Management ---
+    function openModal(modalId) { 
+        const modal = DOMElements.modal[modalId] || document.getElementById(modalId);
+        if(modal) modal.style.display = 'block'; document.body.style.overflow = 'hidden';
+     }
+    function closeModal(modalId) { 
+        const modal = DOMElements.modal[modalId] || document.getElementById(modalId);
+        if(modal) modal.style.display = 'none'; document.body.style.overflow = 'auto';
+        if (modalId === 'productModal') DOMElements.modal.customProductName.value = '';
+    }
+    function closeModalAndClearTempItems() {
+        if (appData.currentModalCategory) { appData.currentModalItems = []; renderModalSelectedItems(); }
+        closeModal('productModal');
+    }
+    DOMElements.modal.cancelModalBtn.addEventListener('click', () => {
+        closeModalAndClearTempItems();
+        showToast('পণ্য যোগ বাতিল করা হয়েছে।', 'warning');
+    });
+
+    // --- "Create List" Page Logic ---
+    function renderProductCategories() { 
+        DOMElements.createList.productCategoryGrid.innerHTML = '';
+        appData.categories.forEach(category => {
+            const card = document.createElement('div'); card.classList.add('category-button');
+            card.innerHTML = `<i class="${category.icon || 'fas fa-tag'}"></i><span>${category.name}</span>`;
+            card.addEventListener('click', () => openProductSelectionModal(category));
+            DOMElements.createList.productCategoryGrid.appendChild(card);
+        });
+    }
+
+    function openProductSelectionModal(category) {
+        appData.currentModalCategory = category;
+        appData.currentModalItems = appData.currentShoppingList
+            .filter(item => item.categoryId === category.id)
+            .map(item => ({ 
+                id: generateId('modalExisting'), originalId: item.id, name: item.name, unit: item.unit,
+                variations: category.items.find(catItem => catItem.name === item.name)?.variations || ['সাধারণ'],
+                selectedVariation: item.variation, quantity: item.quantity,
+            }));
+
+        DOMElements.modal.categoryName.textContent = category.name;
+        DOMElements.modal.customProductName.value = '';
+        DOMElements.modal.suggestionButtons.innerHTML = '';
+        renderModalSelectedItems();
+
+        if (category.items && category.items.length > 0) {
+            category.items.forEach(catItemDefinition => {
+                const btn = document.createElement('button'); btn.classList.add('btn', 'btn-sm', 'btn-suggest');
+                btn.textContent = catItemDefinition.name;
+                btn.addEventListener('click', () => addProductToModalList(catItemDefinition));
+                DOMElements.modal.suggestionButtons.appendChild(btn);
+            });
+        } else {
+            DOMElements.modal.suggestionButtons.innerHTML = '<p style="font-style:italic; color:var(--text-light-color);">এই বিভাগে কোনো ডিফল্ট পণ্য নেই। নিজে যোগ করুন।</p>';
+        }
+        openModal('productModal'); DOMElements.modal.customProductName.focus();
+    }
+    
+    DOMElements.modal.addCustomProductBtn.addEventListener('click', () => {
+        const customName = DOMElements.modal.customProductName.value.trim();
+        if (customName) { addProductToModalList({ name: customName, defaultUnit: 'পিস', variations: ['সাধারণ'] }); DOMElements.modal.customProductName.value = ''; }
+        else { showToast('পণ্যের নাম লিখুন।', 'info'); }
+    });
+    DOMElements.modal.customProductName.addEventListener('keypress', function(event) {
+        if (event.key === 'Enter') { event.preventDefault(); DOMElements.modal.addCustomProductBtn.click(); }
+    });
+
+    function addProductToModalList(itemConfig) {
+        const existingItemIndex = appData.currentModalItems.findIndex(i => i.name.toLowerCase() === itemConfig.name.toLowerCase());
+        if (existingItemIndex !== -1) {
+            showToast(`"${itemConfig.name}" ইতোমধ্যে এই ধাপে যোগ করা হয়েছে।`, 'info');
+            const qtyInput = DOMElements.modal.selectedProductsUl.querySelector(`input[data-temp-id="${appData.currentModalItems[existingItemIndex].id}"].modal-item-quantity`);
+            if (qtyInput) { qtyInput.focus(); qtyInput.select(); } return;
+        }
+        const tempItemId = generateId('modalItem');
+        appData.currentModalItems.push({
+            id: tempItemId, name: itemConfig.name, unit: itemConfig.defaultUnit || 'পিস',
+            variations: itemConfig.variations || ['সাধারণ'],
+            selectedVariation: (itemConfig.variations && itemConfig.variations.length > 0) ? itemConfig.variations[0] : 'সাধারণ',
+            quantity: 1,
+        });
+        renderModalSelectedItems();
+    }
+    
+    function renderModalSelectedItems() {
+        const ul = DOMElements.modal.selectedProductsUl;
+        ul.innerHTML = ''; 
+        if (appData.currentModalItems.length === 0) { DOMElements.modal.noModalItemsMsg.style.display = 'block'; return; }
+        DOMElements.modal.noModalItemsMsg.style.display = 'none';
+
+        appData.currentModalItems.forEach((pItem) => {
+            const li = document.createElement('li');
+            const unitContainerId = `unit-container-${pItem.id}`;
+            const unitDropdownId = `unit-dropdown-${pItem.id}`;
+
+            li.innerHTML = `
+                <span class="item-name-modal">${pItem.name}</span>
+                <div class="controls-modal-inline"> 
+                    ${pItem.variations && pItem.variations.length > 1 ? `
+                        <select class="modal-item-variation" data-temp-id="${pItem.id}" title="প্রকারভেদ">
+                            ${pItem.variations.map(v => `<option value="${v}" ${v === pItem.selectedVariation ? 'selected' : ''}>${v}</option>`).join('')}
+                        </select>
+                    ` : ''}
+                    <input type="number" class="modal-item-quantity" value="${pItem.quantity}" min="0.1" step="0.1" data-temp-id="${pItem.id}" title="পরিমাণ">
+                    <div class="unit-display-container" id="${unitContainerId}">
+                        <span class="unit-text" data-temp-id="${pItem.id}" title="একক পরিবর্তন করুন">${pItem.unit}</span>
+                        <button class="edit-unit-btn" data-dropdown-target="${unitDropdownId}" title="একক পরিবর্তন করুন"><i class="fas fa-caret-down"></i></button>
+                        <div class="unit-dropdown-popup" id="${unitDropdownId}">
+                            ${COMMON_UNITS.map(u => `<button type="button" class="unit-option-btn" data-unit="${u}" data-temp-id="${pItem.id}">${u}</button>`).join('')}
+                            <input type="text" placeholder="অন্যান্য..." class="custom-unit-input" data-temp-id="${pItem.id}">
+                        </div>
+                    </div>
+                    <button class="btn btn-danger btn-sm modal-item-remove" data-temp-id="${pItem.id}" title="মুছে ফেলুন">&times;</button>
+                </div>
+            `;
+            ul.appendChild(li);
+        });
+
+        ul.querySelectorAll('.modal-item-variation').forEach(sel => { sel.addEventListener('change', (e) => updateModalItem(e.target.dataset.tempId, 'selectedVariation', e.target.value)); });
+        ul.querySelectorAll('.modal-item-quantity').forEach(inp => { inp.addEventListener('input', (e) => updateModalItem(e.target.dataset.tempId, 'quantity', parseFloat(e.target.value) || 1)); });
+        ul.querySelectorAll('.edit-unit-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation(); const dropdownId = e.currentTarget.dataset.dropdownTarget; const dropdown = document.getElementById(dropdownId);
+                document.querySelectorAll('.unit-dropdown-popup').forEach(d => { if (d.id !== dropdownId) d.style.display = 'none'; });
+                dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+            });
+        });
+        ul.querySelectorAll('.unit-option-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const tempId = e.target.dataset.tempId; const newUnit = e.target.dataset.unit;
+                updateModalItem(tempId, 'unit', newUnit);
+                const unitTextDisplay = document.querySelector(`#unit-container-${tempId} .unit-text`);
+                if (unitTextDisplay) unitTextDisplay.textContent = newUnit;
+                e.target.closest('.unit-dropdown-popup').style.display = 'none';
+            });
+        });
+        ul.querySelectorAll('.custom-unit-input').forEach(inp => {
+            inp.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter' && inp.value.trim()) {
+                    const tempId = e.target.dataset.tempId; const newUnit = inp.value.trim();
+                    updateModalItem(tempId, 'unit', newUnit);
+                    const unitTextDisplay = document.querySelector(`#unit-container-${tempId} .unit-text`);
+                    if (unitTextDisplay) unitTextDisplay.textContent = newUnit;
+                    inp.closest('.unit-dropdown-popup').style.display = 'none'; inp.value = '';
+                }
+            });
+        });
+        ul.querySelectorAll('.modal-item-remove').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const tempId = e.currentTarget.dataset.tempId || e.target.closest('button').dataset.tempId;
+                appData.currentModalItems = appData.currentModalItems.filter(item => item.id !== tempId);
+                renderModalSelectedItems(); 
+            });
+        });
+    }
+    document.addEventListener('click', function(event) { 
+        document.querySelectorAll('.unit-dropdown-popup').forEach(dropdown => {
+            if (!dropdown.parentElement.contains(event.target)) { dropdown.style.display = 'none';}
+        });
+    });
+    function updateModalItem(tempId, key, value) { 
+        const item = appData.currentModalItems.find(i => i.id === tempId);
+        if (item) { item[key] = value; }
+    }
+    
+    DOMElements.modal.confirmBtn.addEventListener('click', () => { 
+        if (!appData.currentModalCategory) { showToast('ত্রুটি: কোনো বিভাগ নির্বাচন করা হয়নি।', 'error'); closeModal('productModal'); return; }
+        appData.currentShoppingList = appData.currentShoppingList.filter(item => item.categoryId !== appData.currentModalCategory.id);
+        let itemsProcessedCount = 0;
+        appData.currentModalItems.forEach(mItem => {
+            if (mItem.quantity > 0) {
+                appData.currentShoppingList.push({
+                    id: mItem.originalId || generateId('shopItem'), 
+                    categoryId: appData.currentModalCategory.id, categoryName: appData.currentModalCategory.name,
+                    name: mItem.name, variation: mItem.selectedVariation,
+                    quantity: mItem.quantity, unit: mItem.unit,
+                    notes: appData.currentShoppingList.find(i => i.id === mItem.originalId)?.notes || '' 
+                });
+                itemsProcessedCount++;
+            }
+        });
+        renderFinalShoppingListPreview(); closeModal('productModal');
+        if (itemsProcessedCount > 0) {
+            showToast(`${appData.currentModalCategory.name} বিভাগ থেকে পণ্য তালিকায় যোগ/আপডেট করা হয়েছে।`, 'success');
+        } else {
+            showToast(`${appData.currentModalCategory.name} বিভাগ থেকে কোনো পণ্য যোগ করা হয়নি।`, 'info');
+        }
+        appData.currentModalItems = []; 
+    });
+
+    function renderFinalShoppingListPreview() { 
+        const ul = DOMElements.createList.finalShoppingListUl; ul.innerHTML = '';
+        if (appData.currentShoppingList.length === 0) { DOMElements.createList.noItemsSelectedMsg.style.display = 'block'; return; }
+        DOMElements.createList.noItemsSelectedMsg.style.display = 'none';
+        appData.currentShoppingList.sort((a, b) => a.categoryName.localeCompare(b.categoryName, 'bn'));
+
+        appData.currentShoppingList.forEach((item) => {
+            const li = document.createElement('li');
+            const finalUnitContainerId = `final-unit-container-${item.id}`;
+            const finalUnitDropdownId = `final-unit-dropdown-${item.id}`;
+            li.innerHTML = `
+                <div class="item-info">
+                    <span style="font-size:0.8em; color:var(--text-light-color); display:block;">${item.categoryName}</span>
+                    <strong>${item.name}</strong> ${item.variation && item.variation.toLowerCase() !== 'সাধারণ' ? `(${item.variation})` : ''}
+                </div>
+                <div class="item-controls-final">
+                    <input type="number" value="${item.quantity}" min="0.1" step="0.1" data-id="${item.id}" class="final-item-quantity" title="পরিমাণ">
+                    <div class="unit-display-container final-item-unit-container" id="${finalUnitContainerId}">
+                        <span class="unit-text" data-id="${item.id}" title="একক পরিবর্তন করুন">${item.unit}</span>
+                        <button class="edit-unit-btn" data-dropdown-target="${finalUnitDropdownId}" title="একক পরিবর্তন করুন"><i class="fas fa-caret-down"></i></button>
+                        <div class="unit-dropdown-popup" id="${finalUnitDropdownId}">
+                            ${COMMON_UNITS.map(u => `<button type="button" class="unit-option-btn final-list-unit-option" data-unit="${u}" data-id="${item.id}">${u}</button>`).join('')}
+                            <input type="text" placeholder="অন্যান্য..." class="custom-unit-input final-list-custom-unit" data-id="${item.id}">
+                        </div>
+                    </div>
+                    <input type="text" value="${item.notes || ''}" placeholder="নোট" data-id="${item.id}" class="final-item-notes" title="বিশেষ নোট">
+                    <button class="btn btn-danger btn-sm final-item-remove" data-id="${item.id}" title="তালিকা থেকে মুছুন"><i class="fas fa-times"></i></button>
+                </div>
+            `;
+            ul.appendChild(li);
+        });
+        ul.querySelectorAll('.final-item-quantity').forEach(inp => { inp.addEventListener('change', (e) => updateFinalListItem(e.target.dataset.id, 'quantity', parseFloat(e.target.value) || 0.1)); });
+        ul.querySelectorAll('.final-item-unit-container .edit-unit-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation(); const dropdownId = e.currentTarget.dataset.dropdownTarget; const dropdown = document.getElementById(dropdownId);
+                document.querySelectorAll('#finalShoppingListPreview .unit-dropdown-popup').forEach(d => { if (d.id !== dropdownId) d.style.display = 'none'; });
+                dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+            });
+        });
+        ul.querySelectorAll('.final-list-unit-option').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const itemId = e.target.dataset.id; const newUnit = e.target.dataset.unit;
+                updateFinalListItem(itemId, 'unit', newUnit);
+                const unitTextDisplay = document.querySelector(`#final-unit-container-${itemId} .unit-text`);
+                if (unitTextDisplay) unitTextDisplay.textContent = newUnit;
+                e.target.closest('.unit-dropdown-popup').style.display = 'none';
+            });
+        });
+        ul.querySelectorAll('.final-list-custom-unit').forEach(inp => {
+            inp.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter' && inp.value.trim()) {
+                    const itemId = e.target.dataset.id; const newUnit = inp.value.trim();
+                    updateFinalListItem(itemId, 'unit', newUnit);
+                    const unitTextDisplay = document.querySelector(`#final-unit-container-${itemId} .unit-text`);
+                    if (unitTextDisplay) unitTextDisplay.textContent = newUnit;
+                    inp.closest('.unit-dropdown-popup').style.display = 'none'; inp.value = '';
+                }
+            });
+        });
+        ul.querySelectorAll('.final-item-notes').forEach(inp => { inp.addEventListener('input', (e) => updateFinalListItem(e.target.dataset.id, 'notes', e.target.value)); });
+        ul.querySelectorAll('.final-item-remove').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const itemId = e.currentTarget.dataset.id;
+                appData.currentShoppingList = appData.currentShoppingList.filter(i => i.id !== itemId);
+                renderFinalShoppingListPreview();
+            });
+        });
+        saveDataToLocalStorage();
+    }
+    function updateFinalListItem(itemId, key, value) { 
+        const item = appData.currentShoppingList.find(i => i.id === itemId);
+        if (item) {
+            item[key] = value;
+            if (key === 'quantity' && parseFloat(value) <= 0) {
+                if(confirm("এই পণ্যটির পরিমাণ শূন্য বা তার কম। আপনি কি তালিকা থেকে এটি মুছে ফেলতে চান?")){
+                    appData.currentShoppingList = appData.currentShoppingList.filter(i => i.id !== itemId);
+                    renderFinalShoppingListPreview();
+                } else {
+                    item.quantity = 1; // Reset to 1 if user cancels deletion
+                    renderFinalShoppingListPreview();
+                }
+            }
+        }
+        saveDataToLocalStorage();
+    }
+    
+    DOMElements.createList.sendAsMessageBtn.addEventListener('click', sendListAsMessage);
+    DOMElements.createList.sendAsPdfBtn.addEventListener('click', sendListAsPdf);
+    DOMElements.createList.clearEntireListBtn.addEventListener('click', () => { 
+        if (appData.currentShoppingList.length === 0) { showToast('তালিকা ইতোমধ্যে খালি।', 'info'); return; }
+        if (confirm('আপনি কি সত্যিই সম্পূর্ণ তালিকাটি মুছে ফেলতে চান?')) {
+            appData.currentShoppingList = []; renderFinalShoppingListPreview(); saveDataToLocalStorage();
+            showToast('সম্পূর্ণ তালিকা মুছে ফেলা হয়েছে।', 'success');
+        }
+    });
+
+    function generateShoppingListTextForWhatsapp() {
+        if (appData.currentShoppingList.length === 0) { showToast('পাঠানোর জন্য কোনো পণ্য তালিকায় নেই।', 'error'); return null; }
+        
+        let listHeaderText = "🛒 *বাজারের তালিকা:*\n"; 
+        
+        const today = new Date();
+        const dateOptions = { year: 'numeric', month: 'long', day: 'numeric', timeZone: 'Asia/Dhaka' };
+        const dayOptions = { weekday: 'long', timeZone: 'Asia/Dhaka' };
+        const formattedDate = today.toLocaleDateString('bn-BD-u-nu-beng', dateOptions);
+        const formattedDay = today.toLocaleDateString('bn-BD-u-nu-beng', dayOptions);
+
+        listHeaderText += `🗓️ তারিখ: ${formattedDate}, ${formattedDay}\n`;
+        listHeaderText += `------------------------------------\n`;
+
+        let messageBody = "";
+        const groupedByCategory = appData.currentShoppingList.reduce((acc, item) => {
+            acc[item.categoryName] = acc[item.categoryName] || []; acc[item.categoryName].push(item); return acc;
+        }, {});
+        
+        const categoryOrder = appData.categories.map(cat => cat.name);
+        
+        for (const categoryName of categoryOrder) {
+            if (groupedByCategory[categoryName]) {
+                 messageBody += `\n🏷️ *${categoryName}:*\n`;
+                 groupedByCategory[categoryName].forEach((item, index) => {
+                    messageBody += `  • ${item.name}`;
+                    if (item.variation && item.variation.toLowerCase() !== 'সাধারণ') messageBody += ` (${item.variation})`;
+                    messageBody += ` - ${item.quantity} ${item.unit}`;
+                    if (item.notes) messageBody += ` [বিঃ ${item.notes}]`;
+                    messageBody += '\n';
+                });
+            }
+        }
+        if (messageBody.trim() === "") { showToast('তালিকায় কোনো কার্যকরী পণ্য নেই।', 'error'); return null; }
+        return listHeaderText + messageBody;
+    }
+    function sendListAsMessage() { 
+        const listText = generateShoppingListTextForWhatsapp(); if (!listText) return;
+        const selectedRecipientId = DOMElements.createList.selectRecipient.value;
+        if (!selectedRecipientId) { showToast('অনুগ্রহ করে একজন প্রাপক নির্বাচন করুন।', 'error'); return; }
+        const recipient = appData.recipients.find(r => r.id === selectedRecipientId);
+        const whatsappNumber = recipient.number.replace(/\D/g, '');
+        const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(listText)}`;
+        window.open(whatsappUrl, '_blank'); showToast('WhatsApp এ তালিকা পাঠানো হচ্ছে...', 'info');
+    }
+    
+    async function sendListAsPdf() { 
+        if (appData.currentShoppingList.length === 0) { showToast('PDF তৈরি করার জন্য তালিকায় কোনো পণ্য নেই।', 'error'); return; }
+        if (typeof jspdf === 'undefined' || typeof html2canvas === 'undefined') {
+            showToast('PDF তৈরির লাইব্রেরি লোড হয়নি। পৃষ্ঠাটি রিফ্রেশ করুন।', 'error'); return;
+        }
+        showToast('PDF তৈরি করা হচ্ছে...', 'info', 5000);
+        DOMElements.pdf.previewArea.style.display = 'block';
+        const { jsPDF } = jspdf; const doc = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4', putOnlyUsedFonts: true });
+        
+        let pdfHtmlContent = `<div class="pdf-header"><h2>বাজারের তালিকা</h2>`;
+        const today = new Date();
+        const dateOptions = { year: 'numeric', month: 'long', day: 'numeric', timeZone: 'Asia/Dhaka' };
+        const dayOptions = { weekday: 'long', timeZone: 'Asia/Dhaka' };
+        const formattedDate = today.toLocaleDateString('bn-BD-u-nu-beng', dateOptions);
+        const formattedDay = today.toLocaleDateString('bn-BD-u-nu-beng', dayOptions);
+        pdfHtmlContent += `<p><strong>তারিখ:</strong> ${formattedDate}, ${formattedDay}</p></div>`;
+        
+        pdfHtmlContent += `<table><thead><tr><th>নং</th><th>বিবরণ</th><th>পরিমাণ</th><th>একক</th><th>নোট</th></tr></thead><tbody>`;
+        const groupedByCategory = appData.currentShoppingList.reduce((acc, item) => {
+            acc[item.categoryName] = acc[item.categoryName] || []; acc[item.categoryName].push(item); return acc;
+        }, {});
+        let itemNumber = 1; 
+        const categoryOrder = appData.categories.map(cat => cat.name);
+
+        for (const categoryName of categoryOrder) {
+            if (groupedByCategory[categoryName]) {
+                pdfHtmlContent += `<tr><td colspan="5" class="category-header-pdf">${categoryName}</td></tr>`;
+                groupedByCategory[categoryName].forEach((item) => {
+                    pdfHtmlContent += `<tr><td>${itemNumber++}.</td><td>${item.name} ${item.variation && item.variation.toLowerCase() !== 'সাধারণ' ? `(${item.variation})` : ''}</td>
+                        <td>${item.quantity}</td><td>${item.unit}</td><td>${item.notes || ''}</td></tr>`;
+                });
+            }
+        }
+        pdfHtmlContent += `</tbody></table>`;
+        pdfHtmlContent += `<div class="pdf-footer"><p>তালিকাপ্রণেতা: আব্দুল হালিম সায়েম (স্মার্ট বাজার তালিকা)</p></div>`
+        DOMElements.pdf.contentForGeneration.innerHTML = pdfHtmlContent;
+        try {
+            const canvas = await html2canvas(DOMElements.pdf.contentForGeneration, { scale: 2.5, useCORS: true, logging: false });
+            const imgData = canvas.toDataURL('image/jpeg', 0.92);
+            const imgProps = doc.getImageProperties(imgData); const pdfPageWidth = doc.internal.pageSize.getWidth();
+            const pdfPageHeight = doc.internal.pageSize.getHeight(); const margin = 10;
+            const contentWidth = pdfPageWidth - 2 * margin; const contentHeight = (imgProps.height * contentWidth) / imgProps.width;
+            let heightLeft = contentHeight; let position = 0;
+            doc.addImage(imgData, 'JPEG', margin, position + margin, contentWidth, Math.min(contentHeight, pdfPageHeight - 2*margin));
+            heightLeft -= (pdfPageHeight - 2*margin);
+            while (heightLeft > 0) {
+                position -= (pdfPageHeight - 2*margin); doc.addPage();
+                doc.addImage(imgData, 'JPEG', margin, position + margin, contentWidth, contentHeight); 
+                heightLeft -= (pdfPageHeight - 2*margin);
+            }
+            doc.save('Bazar_Talika.pdf'); showToast('PDF সফলভাবে তৈরি হয়েছে!', 'success');
+        } catch (error) { console.error("PDF gen error:", error); showToast('PDF তৈরিতে সমস্যা হয়েছে।', 'error');
+        } finally { DOMElements.pdf.previewArea.style.display = 'none'; DOMElements.pdf.contentForGeneration.innerHTML = ''; }
+    }
+
+    // --- "View Saved Lists" Page ---
+    function renderSavedLists() {
+        DOMElements.savedLists.container.innerHTML = '';
+        if (appData.categories.length === 0) { DOMElements.savedLists.container.innerHTML = '<p style="text-align:center; font-style:italic;">কোনো সেকশন নেই।</p>'; return; }
+        appData.categories.forEach(category => {
+            const categoryDiv = document.createElement('div'); categoryDiv.classList.add('saved-category');
+            categoryDiv.innerHTML = `<h4><i class="${category.icon || 'fas fa-tag'}"></i> ${category.name}</h4>`;
+            const ul = document.createElement('ul');
+            if (!category.items || category.items.length === 0) { ul.innerHTML = '<li>এই বিভাগে কোনো পণ্য নেই।</li>'; }
+            else {
+                category.items.forEach(item => {
+                    let itemDesc = `<strong>${item.name}</strong> (ডিফল্ট একক: ${item.defaultUnit || 'পিস'})`;
+                    if (item.variations && item.variations.length > 1 && !(item.variations.length === 1 && item.variations[0].toLowerCase() === 'সাধারণ')) {
+                        itemDesc += ` - প্রকারভেদ: ${item.variations.filter(v => v.toLowerCase() !== 'সাধারণ').join(', ')}`;
+                    }
+                    ul.innerHTML += `<li>${itemDesc}</li>`;
+                });
+            }
+            categoryDiv.appendChild(ul); DOMElements.savedLists.container.appendChild(categoryDiv);
+        });
+    }
+
+    // --- "Add New Items/Sections" Page ---
+    function populateSectionDropdownForNewProduct() {
+         DOMElements.addNew.selectSectionForProduct.innerHTML = '<option value="">-- সেকশন নির্বাচন করুন --</option>';
+        appData.categories.forEach(category => {
+            const option = document.createElement('option'); option.value = category.id; option.textContent = category.name;
+            DOMElements.addNew.selectSectionForProduct.appendChild(option);
+        });
+    }
+    DOMElements.addNew.addSectionBtn.addEventListener('click', () => {
+        const name = DOMElements.addNew.sectionName.value.trim(); const icon = DOMElements.addNew.sectionIcon.value.trim() || 'fas fa-stream'; 
+        if (!name) { showToast('অনুগ্রহ করে সেকশনের নাম দিন।', 'error'); return; }
+        if (appData.categories.some(cat => cat.name.toLowerCase() === name.toLowerCase())) { showToast(`"${name}" নামে সেকশন আছে।`, 'error'); return; }
+        const newCatId = generateId('cat'); appData.categories.push({ id: newCatId, name: name, icon: icon, items: [] });
+        saveDataToLocalStorage(); populateSectionDropdownForNewProduct(); 
+        DOMElements.addNew.sectionName.value = ''; DOMElements.addNew.sectionIcon.value = '';
+        showToast(`"${name}" সেকশন যোগ করা হয়েছে।`, 'success'); renderProductCategories(); 
+    });
+    DOMElements.addNew.addProductBtn.addEventListener('click', () => {
+        const sectionId = DOMElements.addNew.selectSectionForProduct.value; const productName = DOMElements.addNew.productName.value.trim();
+        const defaultUnit = DOMElements.addNew.productDefaultUnit.value.trim(); 
+        let variations = DOMElements.addNew.productVariations.value.trim()
+            ? DOMElements.addNew.productVariations.value.split(',').map(v => v.trim()).filter(Boolean) : [];
+        if (!sectionId || !productName || !defaultUnit) { showToast('অনুগ্রহ করে সেকশন, পণ্যের নাম এবং ডিফল্ট একক দিন।', 'error'); return; }
+        const hasGeneralVariation = variations.some(v => v.toLowerCase() === 'সাধারণ');
+        if (!hasGeneralVariation) {
+            variations.unshift('সাধারণ');
+        }
+        const category = appData.categories.find(cat => cat.id === sectionId);
+        if (category) {
+            if (category.items.some(item => item.name.toLowerCase() === productName.toLowerCase())) {
+                 showToast(`"${productName}" পণ্যটি "${category.name}" সেকশনে আছে।`, 'error'); return;
+            }
+            category.items.push({ name: productName, defaultUnit: defaultUnit, variations: variations }); saveDataToLocalStorage();
+            DOMElements.addNew.productName.value = ''; DOMElements.addNew.productDefaultUnit.value = '';
+            DOMElements.addNew.productVariations.value = ''; DOMElements.addNew.selectSectionForProduct.value = '';
+            showToast(`"${productName}" পণ্যটি "${category.name}" সেকশনে যোগ করা হয়েছে।`, 'success');
+        } else { showToast('ত্রুটি: নির্বাচিত সেকশন খুঁজে পাওয়া যায়নি।', 'error'); }
+    });
+
+    // --- "Manage Recipients" Page ---
+    function renderRecipientList() {
+        DOMElements.recipients.listBody.innerHTML = '';
+        if (!appData.recipients || appData.recipients.length === 0) { DOMElements.recipients.listBody.innerHTML = '<tr><td colspan="3" style="text-align:center; padding:15px; font-style:italic;">কোনো প্রাপক সেভ করা নেই।</td></tr>'; }
+        else { appData.recipients.forEach(recipient => { const row = DOMElements.recipients.listBody.insertRow();
+                row.innerHTML = `<td>${recipient.name}</td><td>${recipient.number}</td> <td class="action-buttons"> <button class="btn btn-sm btn-primary" onclick="editRecipient('${recipient.id}')" title="এডিট করুন"><i class="fas fa-edit"></i></button> <button class="btn btn-sm btn-danger" onclick="deleteRecipient('${recipient.id}')" title="ডিলিট করুন"><i class="fas fa-trash-alt"></i></button> </td>`; });
+        } populateRecipientDropdown();
+    }
+    function populateRecipientDropdown() {
+         DOMElements.createList.selectRecipient.innerHTML = '<option value="">-- প্রাপক নির্বাচন করুন --</option>';
+         if (appData.recipients && appData.recipients.length > 0) {
+            appData.recipients.forEach(recipient => { const option = document.createElement('option'); option.value = recipient.id;
+                option.textContent = `${recipient.name} (${recipient.number})`; DOMElements.createList.selectRecipient.appendChild(option); });
+         }
+    }
+    DOMElements.recipients.addUpdateBtn.addEventListener('click', () => {
+        const name = DOMElements.recipients.name.value.trim(); const number = DOMElements.recipients.number.value.trim();
+        const editingId = DOMElements.recipients.editingId.value;
+        if (!name || !number) { showToast('অনুগ্রহ করে নাম এবং WhatsApp নম্বর দিন।', 'error'); return; }
+        let normalizedNumber = number.replace(/[+\s-]/g, '');
+        if (normalizedNumber.startsWith('8801') && normalizedNumber.length === 13) {}
+        else if (normalizedNumber.startsWith('01') && normalizedNumber.length === 11) { normalizedNumber = '88' + normalizedNumber; }
+        else { showToast('সঠিক বাংলাদেশি WhatsApp নম্বর দিন।', 'error'); return; }
+        if (editingId) { 
+            const recipient = appData.recipients.find(r => r.id === editingId);
+            if (recipient) { if (recipient.number !== normalizedNumber && appData.recipients.some(r => r.id !== editingId && r.number === normalizedNumber)) {
+                     showToast('এই WhatsApp নম্বরটি অন্য প্রাপকের জন্য আছে।', 'error'); return; }
+                recipient.name = name; recipient.number = normalizedNumber; showToast('তথ্য আপডেট করা হয়েছে।', 'success');
+            }
+        } else { if (appData.recipients.some(r => r.number === normalizedNumber)) { showToast('এই WhatsApp নম্বরটি আছে।', 'error'); return; }
+            appData.recipients.push({ id: generateId('rec'), name: name, number: normalizedNumber }); showToast('নতুন প্রাপক যোগ করা হয়েছে।', 'success');
+        }
+        saveDataToLocalStorage(); renderRecipientList(); DOMElements.recipients.name.value = ''; DOMElements.recipients.number.value = '';
+        DOMElements.recipients.editingId.value = ''; DOMElements.recipients.addUpdateBtn.innerHTML = '<i class="fas fa-user-plus"></i> প্রাপক যোগ/আপডেট করুন';
+    });
+    window.editRecipient = function(id) {
+        const recipient = appData.recipients.find(r => r.id === id);
+        if (recipient) { DOMElements.recipients.name.value = recipient.name; DOMElements.recipients.number.value = recipient.number;
+            DOMElements.recipients.editingId.value = id; DOMElements.recipients.addUpdateBtn.innerHTML = '<i class="fas fa-save"></i> তথ্য সংরক্ষণ';
+            showToast(`"${recipient.name}" এর তথ্য এডিট করছেন।`, 'info'); DOMElements.recipients.name.focus();
+        }
+    };
+    window.deleteRecipient = function(id) {
+        const recipient = appData.recipients.find(r => r.id === id);
+        if (recipient && confirm(`"${recipient.name}" কে মুছে ফেলতে চান?`)) {
+            appData.recipients = appData.recipients.filter(r => r.id !== id); saveDataToLocalStorage(); renderRecipientList();
+            if (DOMElements.recipients.editingId.value === id) {
+                 DOMElements.recipients.name.value = ''; DOMElements.recipients.number.value = ''; DOMElements.recipients.editingId.value = '';
+                 DOMElements.recipients.addUpdateBtn.innerHTML = '<i class="fas fa-user-plus"></i> প্রাপক যোগ/আপডেট করুন';
+            } showToast('প্রাপক মুছে ফেলা হয়েছে।', 'success');
+        }
+    };
+
+    // --- Initialization ---
+    document.addEventListener('DOMContentLoaded', () => {
+        DOMElements.currentYear.textContent = new Date().getFullYear();
+        loadDataFromLocalStorage();
+        navigateToPage('homePage'); 
+    });
+
+    </script>
+</body>
+</html>
